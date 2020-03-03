@@ -1,0 +1,3 @@
+rootProject.name='AdmobNativeUnity'
+include ':app'
+include ':AdmobNative'
