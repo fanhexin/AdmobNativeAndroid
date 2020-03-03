@@ -27,7 +27,9 @@ public class AdService {
     private String adUnitId;
     private ViewGroup viewGroup;
     private UnifiedNativeAd curNativeAd;
-    private AdFailedListener adFailedListener;
+    private AdLoadListener adLoadListener;
+    private boolean isShowing;
+    private boolean isLoading;
 
     public AdService(Activity activity, String adUnitId) {
         this.activity = activity;
@@ -40,12 +42,21 @@ public class AdService {
     }
 
     public void load() {
+        if (isLoading || curNativeAd != null)
+        {
+            return;
+        }
+
         AdLoader.Builder builder = new AdLoader.Builder(activity, adUnitId);
 
         builder.forUnifiedNativeAd(new UnifiedNativeAd.OnUnifiedNativeAdLoadedListener() {
             @Override
             public void onUnifiedNativeAdLoaded(UnifiedNativeAd unifiedNativeAd) {
                 curNativeAd = unifiedNativeAd;
+                isLoading = false;
+                if (adLoadListener != null) {
+                    adLoadListener.onSucceed();
+                }
             }
         });
 
@@ -62,12 +73,14 @@ public class AdService {
         AdLoader adLoader = builder.withAdListener(new AdListener() {
             @Override
             public void onAdFailedToLoad(int errorCode) {
-                if (adFailedListener != null) {
-                    adFailedListener.onError(errorCode);
+                if (adLoadListener != null) {
+                    adLoadListener.onError(errorCode);
                 }
+                isLoading = false;
             }
         }).build();
         adLoader.loadAd(new AdRequest.Builder().build());
+        isLoading = true;
     }
 
     private void populateUnifiedNativeAdView(UnifiedNativeAd nativeAd, UnifiedNativeAdView adView) {
@@ -113,7 +126,7 @@ public class AdService {
     }
 
     public void show(final int x, final int y, final int width, final int height) {
-        if (curNativeAd == null)
+        if (curNativeAd == null || isShowing)
         {
             return;
         }
@@ -121,7 +134,7 @@ public class AdService {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                View view = activity.getLayoutInflater().inflate(R.layout.ad_unified, null);
+                View view = activity.getLayoutInflater().inflate(R.layout.ad_unified, viewGroup);
                 UnifiedNativeAdView adView = view.findViewById(R.id.unified_ad_view);
                 populateUnifiedNativeAdView(curNativeAd, adView);
                 ConstraintLayout.LayoutParams layoutParams = (ConstraintLayout.LayoutParams) adView.getLayoutParams();
@@ -130,18 +143,25 @@ public class AdService {
                 layoutParams.bottomMargin = y;
                 layoutParams.leftMargin = x;
                 adView.setLayoutParams(layoutParams);
-                viewGroup.addView(view);
+                isShowing = true;
             }
         });
     }
 
     public void hide() {
+        if (curNativeAd == null || !isShowing)
+        {
+            return;
+        }
+
+        curNativeAd.destroy();
+        curNativeAd = null;
+
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 viewGroup.removeViewAt(viewGroup.getChildCount() - 1);
-                curNativeAd.destroy();
-                curNativeAd = null;
+                isShowing = false;
             }
         });
     }
@@ -150,7 +170,7 @@ public class AdService {
         return curNativeAd != null;
     }
 
-    public void setAdFailedListener(AdFailedListener adFailedListener) {
-        this.adFailedListener = adFailedListener;
+    public void setAdLoadListener(AdLoadListener adLoadListener) {
+        this.adLoadListener = adLoadListener;
     }
 }

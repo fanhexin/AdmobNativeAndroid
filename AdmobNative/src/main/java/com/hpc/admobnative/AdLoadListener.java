@@ -1,5 +1,6 @@
 package com.hpc.admobnative;
 
-public interface AdFailedListener {
+public interface AdLoadListener {
     void onError(int errorCode);
+    void onSucceed();
 }
