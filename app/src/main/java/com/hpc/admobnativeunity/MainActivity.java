@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onSucceed() {
-                adService.show(0, 0, 800, 600);
+                adService.show(0, 0, 800, 600, "#00FF00");
             }
         });
     }

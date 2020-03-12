@@ -1,6 +1,7 @@
 package com.hpc.admobnative;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -83,8 +84,8 @@ public class AdService {
         isLoading = true;
     }
 
-    private void populateUnifiedNativeAdView(UnifiedNativeAd nativeAd, UnifiedNativeAdView adView) {
-//        adView.findViewById(R.id.nativeAdView).setBackgroundColor(Color.parseColor(backgroundColor));
+    private void populateUnifiedNativeAdView(UnifiedNativeAd nativeAd, UnifiedNativeAdView adView, String backgroundColor) {
+        adView.findViewById(R.id.nativeAdView).setBackgroundColor(Color.parseColor(backgroundColor));
         adView.setMediaView((MediaView)adView.findViewById(R.id.ad_media));
         adView.setHeadlineView(adView.findViewById(R.id.ad_headline));
         adView.setBodyView(adView.findViewById(R.id.ad_body));
@@ -125,7 +126,7 @@ public class AdService {
         }
     }
 
-    public void show(final int x, final int y, final int width, final int height) {
+    public void show(final int x, final int y, final int width, final int height, final String backgroundColor) {
         if (curNativeAd == null || isShowing)
         {
             return;
@@ -136,7 +137,7 @@ public class AdService {
             public void run() {
                 View view = activity.getLayoutInflater().inflate(R.layout.ad_unified, viewGroup);
                 UnifiedNativeAdView adView = view.findViewById(R.id.unified_ad_view);
-                populateUnifiedNativeAdView(curNativeAd, adView);
+                populateUnifiedNativeAdView(curNativeAd, adView, backgroundColor);
                 ConstraintLayout.LayoutParams layoutParams = (ConstraintLayout.LayoutParams) adView.getLayoutParams();
                 layoutParams.width = width;
                 layoutParams.height = height;
